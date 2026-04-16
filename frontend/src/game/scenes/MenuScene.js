@@ -77,10 +77,10 @@ export class MenuScene extends Phaser.Scene {
         index: 1,
       },
       {
-        title: "Level 3: Logic Maze",
+        title: "Level 3: Integer Escape Facility",
         phase: "RESTRUCTURING PHASE",
-        desc: "Solve code puzzles to escape the facility",
-        mechanic: "Escape Room Puzzle",
+        desc: "Control a robot, hack terminals, and solve int puzzles to escape!",
+        mechanic: "Top-Down Escape Room",
         badge: BADGES.logic_master,
         scene: "Level3Scene",
         index: 2,
