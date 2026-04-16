@@ -70,8 +70,8 @@ export class MenuScene extends Phaser.Scene {
       {
         title: "Level 2: Operations Arena",
         phase: "TUNING PHASE",
-        desc: "Defeat enemy robots with integer math operations",
-        mechanic: "Math Combat System",
+        desc: "Battle robot enemies using integer operations — pick your attack!",
+        mechanic: "Arena Math Combat",
         badge: BADGES.math_warrior,
         scene: "Level2Scene",
         index: 1,
