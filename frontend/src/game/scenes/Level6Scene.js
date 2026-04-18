@@ -1,15 +1,15 @@
 /**
- * Level6Scene — "Float Calculations: Mission Control" (Restructuring Phase)
- * ==========================================================================
- * Mechanic: Arithmetic Challenge Arena
- * - Solve float math problems (add, subtract, multiply, divide)
- * - Precision awareness questions (0.1 + 0.2 = ?)
- * - Real-world scenarios (money, measurements)
- * - 18 problems, multiple choice, timed (15s each)
- * - Need ≥80% accuracy to pass
+ * Level6Scene — "Float Restructuring: Neon Cyber-Core" (Restructuring Phase)
+ * ===========================================================================
+ * Top-down 2D RPG-style level. Engineer navigates a dark tech room to solve
+ * float arithmetic problems at 3 terminals. Completing all 3 restores the
+ * Main Core and earns the Calculation Wizard badge.
  *
- * Schema Theory: Restructuring — deep conceptual understanding of
- * float operations and real-world applications.
+ *   Terminal 1 — Float Addition    (Power Routing)
+ *   Terminal 2 — Float Subtraction (Coolant Stabilization)
+ *   Terminal 3 — Float Constraints (Laser Alignment)
+ *
+ * Schema Theory: Restructuring — applying float logic to solve problems
  */
 
 import Phaser from "phaser";
@@ -17,180 +17,13 @@ import { GameManager } from "../GameManager.js";
 import { BadgeSystem } from "../BadgeSystem.js";
 import { ProgressTracker } from "../ProgressTracker.js";
 
-/* ───────── Constants ───────── */
 const W = 800;
 const H = 600;
-const TOTAL_PROBLEMS = 18;
-const ACCURACY_THRESHOLD = 80;
-const MAX_LIVES = 3;
-const PROBLEM_TIME = 15000;
-
-/* ───────── Problem Bank ───────── */
-
-// Addition/Subtraction (5)
-const ADD_SUB_PROBLEMS = [
-  {
-    question: "1.5 + 2.3 = ?",
-    answer: 3.8,
-    options: [3.8, 3.7, 4.8, 3.53],
-    tip: "Line up the decimals: 1.5 + 2.3 = 3.8",
-    category: "Addition",
-  },
-  {
-    question: "5.75 - 2.25 = ?",
-    answer: 3.50,
-    options: [3.50, 3.25, 3.00, 3.75],
-    tip: "5.75 - 2.25 = 3.50 — decimals line up nicely!",
-    category: "Subtraction",
-  },
-  {
-    question: "10.0 - 3.7 = ?",
-    answer: 6.3,
-    options: [6.3, 7.3, 6.7, 7.7],
-    tip: "10.0 - 3.7 = 6.3 — borrow from the ones place",
-    category: "Subtraction",
-  },
-  {
-    question: "0.25 + 0.75 = ?",
-    answer: 1.00,
-    options: [1.00, 0.100, 0.75, 1.25],
-    tip: "0.25 + 0.75 = 1.00 — quarter + three-quarters = whole!",
-    category: "Addition",
-  },
-  {
-    question: "-1.5 + 3.7 = ?",
-    answer: 2.2,
-    options: [2.2, -2.2, 5.2, -5.2],
-    tip: "-1.5 + 3.7 = 2.2 — add the difference, keep the sign of larger",
-    category: "Addition",
-  },
-];
-
-// Multiplication/Division (5)
-const MUL_DIV_PROBLEMS = [
-  {
-    question: "2.5 × 4 = ?",
-    answer: 10.0,
-    options: [10.0, 8.5, 6.5, 10.5],
-    tip: "2.5 × 4 = 10.0 — same as 2½ × 4",
-    category: "Multiplication",
-  },
-  {
-    question: "3.0 × 1.5 = ?",
-    answer: 4.5,
-    options: [4.5, 3.5, 4.0, 5.0],
-    tip: "3.0 × 1.5 = 4.5 — multiply, then count decimal places",
-    category: "Multiplication",
-  },
-  {
-    question: "7.5 ÷ 2.5 = ?",
-    answer: 3.0,
-    options: [3.0, 2.5, 5.0, 3.5],
-    tip: "7.5 ÷ 2.5 = 3.0 — how many 2.5s fit in 7.5?",
-    category: "Division",
-  },
-  {
-    question: "0.6 × 0.5 = ?",
-    answer: 0.30,
-    options: [0.30, 0.11, 0.35, 3.0],
-    tip: "0.6 × 0.5 = 0.30 — product has more decimal places!",
-    category: "Multiplication",
-  },
-  {
-    question: "9.9 ÷ 3 = ?",
-    answer: 3.3,
-    options: [3.3, 3.0, 3.6, 33],
-    tip: "9.9 ÷ 3 = 3.3 — divide each digit by 3",
-    category: "Division",
-  },
-];
-
-// Precision Awareness (4)
-const PRECISION_PROBLEMS = [
-  {
-    question: "In programming:\n0.1 + 0.2 = ?",
-    answer: "0.30000000000000004",
-    answerLabel: "≈ 0.30000...04",
-    options: ["0.3", "≈ 0.30000...04", "0.12", "0.30"],
-    tip: "Computers store floats in binary — 0.1 + 0.2 ≈ 0.30000000000000004!",
-    category: "Precision",
-  },
-  {
-    question: "Why does 0.1 + 0.2 ≠ 0.3\nin computers?",
-    answer: "Binary representation",
-    options: ["Bug in code", "Binary representation", "Wrong math", "Rounding error only"],
-    tip: "Floats use binary (base 2) which can't perfectly represent 0.1 or 0.2",
-    category: "Precision",
-  },
-  {
-    question: "What is $19.99 + $0.01\nstored as a float?",
-    answer: "Exactly $20.00",
-    options: ["Exactly $20.00", "≈ $19.999...9", "≈ $20.0000...1", "Error"],
-    tip: "Some float sums are exact! 19.99 + 0.01 = 20.00 in IEEE 754",
-    category: "Precision",
-  },
-  {
-    question: "To avoid float errors\nwith money, you should:",
-    answer: "Use integers (cents)",
-    options: ["Use integers (cents)", "Use doubles", "Round everything", "Ignore it"],
-    tip: "Store money as integer cents (e.g., $19.99 → 1999) to avoid precision loss!",
-    category: "Precision",
-  },
-];
-
-// Real-World Scenarios (4)
-const REAL_WORLD_PROBLEMS = [
-  {
-    question: "A coffee costs $4.50.\nYou pay with $10.00.\nChange = ?",
-    answer: 5.50,
-    options: [5.50, 6.50, 4.50, 5.00],
-    tip: "$10.00 - $4.50 = $5.50 — basic money arithmetic!",
-    category: "Real World",
-  },
-  {
-    question: "A recipe needs 0.75 cups of flour.\nYou're making a triple batch.\nTotal flour = ?",
-    answer: 2.25,
-    options: [2.25, 2.75, 3.75, 0.225],
-    tip: "0.75 × 3 = 2.25 cups — scaling recipes uses float multiplication!",
-    category: "Real World",
-  },
-  {
-    question: "A 2.5 km race.\nYou've run 1.75 km.\nRemaining = ?",
-    answer: 0.75,
-    options: [0.75, 1.25, 0.25, 1.75],
-    tip: "2.5 - 1.75 = 0.75 km remaining — keep going!",
-    category: "Real World",
-  },
-  {
-    question: "Temperature dropped from\n23.5°C to 18.2°C.\nDrop = ?",
-    answer: 5.3,
-    options: [5.3, 4.3, 5.7, 41.7],
-    tip: "23.5 - 18.2 = 5.3°C — real-world float subtraction!",
-    category: "Real World",
-  },
-];
-
-/* ───────── Helpers ───────── */
-function lerpColor(a, b, t) {
-  const ar = (a >> 16) & 0xff, ag = (a >> 8) & 0xff, ab = a & 0xff;
-  const br = (b >> 16) & 0xff, bg = (b >> 8) & 0xff, bb = b & 0xff;
-  const r = Math.round(ar + (br - ar) * t);
-  const g = Math.round(ag + (bg - ag) * t);
-  const bl = Math.round(ab + (bb - ab) * t);
-  return (r << 16) | (g << 8) | bl;
-}
-
-function shuffleArray(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
+const PLAYER_SPEED = 180;
+const TERMINAL_SIZE = 60;
 
 /* ═══════════════════════════════════════════════════════════════
- *  LEVEL 6 SCENE
+ *  SCENE
  * ═══════════════════════════════════════════════════════════════ */
 export class Level6Scene extends Phaser.Scene {
   constructor() {
@@ -199,841 +32,726 @@ export class Level6Scene extends Phaser.Scene {
 
   create() {
     this.physics.world.gravity.y = 0;
+    this.physics.world.setBounds(0, 0, W, H);
 
-    /* ── State ── */
-    this.currentProblem = 0;
-    this.correctAnswers = 0;
-    this.totalAnswered = 0;
+    this.terminalsSolved = 0;
     this.score = 0;
-    this.lives = MAX_LIVES;
     this.isComplete = false;
-    this.gameStarted = false;
-    this.startTime = 0;
-    this.combo = 0;
-    this.problemActive = false;
-    this.timerEvent = null;
-    this.timerBarTween = null;
-    this.problemElements = [];
+    this.panelOpen = false;
+    this.activeTerminalIdx = -1;
+    this.activeDom = null;
 
-    // Build problem sequence: interleave categories
-    this.problems = this._buildProblemSequence();
-
-    this._drawCommandCenterBackground();
-    this._generateTextures();
-    this._createParticles();
+    this._drawRoom();
+    this._genTextures();
+    this._createCore();
+    this._createTerminals();
+    this._createPlayer();
     this._createHUD();
-    this._createScreenDecorations();
+    this._createParticles();
 
-    const uiScene = this.scene.get("UIScene");
-    if (uiScene && uiScene.setLevelLabel) {
-      uiScene.setLevelLabel("Level 6: Restructuring — Mission Control!");
-    }
+    const ui = this.scene.get("UIScene");
+    if (ui?.setLevelLabel) ui.setLevelLabel("Level 6: Restructuring — Neon Cyber-Core!");
 
-    this._showInstruction();
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.wasd = this.input.keyboard.addKeys({
+      up: Phaser.Input.Keyboard.KeyCodes.W,
+      down: Phaser.Input.Keyboard.KeyCodes.S,
+      left: Phaser.Input.Keyboard.KeyCodes.A,
+      right: Phaser.Input.Keyboard.KeyCodes.D,
+    });
+
+    this._showIntro();
   }
 
-  _buildProblemSequence() {
-    const addSub = shuffleArray(ADD_SUB_PROBLEMS);
-    const mulDiv = shuffleArray(MUL_DIV_PROBLEMS);
-    const precision = shuffleArray(PRECISION_PROBLEMS);
-    const realWorld = shuffleArray(REAL_WORLD_PROBLEMS);
+  /* ─────────────────────────────────────────────────────────────
+   *  ROOM BACKGROUND
+   * ───────────────────────────────────────────────────────────── */
+  _drawRoom() {
+    // Dark tech-room floor
+    const g = this.add.graphics().setDepth(0);
+    g.fillStyle(0x0a0f1a, 1);
+    g.fillRect(0, 0, W, H);
 
-    // Interleave: 5 add/sub, 5 mul/div, 4 precision, 4 real-world
-    const sequence = [];
-    let ai = 0, mi = 0, pi = 0, ri = 0;
+    // Grid lines (subtle neon)
+    g.lineStyle(1, 0x1a2744, 0.3);
+    for (let x = 0; x < W; x += 40) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.strokePath(); }
+    for (let y = 0; y < H; y += 40) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.strokePath(); }
 
-    // Phase 1: Addition/Subtraction (1-5)
-    for (let i = 0; i < 5; i++) sequence.push(addSub[ai++]);
-    // Phase 2: Multiplication/Division (6-10)
-    for (let i = 0; i < 5; i++) sequence.push(mulDiv[mi++]);
-    // Phase 3: Precision (11-14)
-    for (let i = 0; i < 4; i++) sequence.push(precision[pi++]);
-    // Phase 4: Real-World (15-18)
-    for (let i = 0; i < 4; i++) sequence.push(realWorld[ri++]);
+    // Floor accent lines
+    g.lineStyle(1, 0x00d4ff, 0.06);
+    g.beginPath(); g.moveTo(0, H / 2); g.lineTo(W, H / 2); g.strokePath();
+    g.beginPath(); g.moveTo(W / 2, 0); g.lineTo(W / 2, H); g.strokePath();
 
-    return sequence;
-  }
-
-  /* ═══════════════════════════════════════════════════════════════
-   *  COMMAND CENTER BACKGROUND
-   * ═══════════════════════════════════════════════════════════════ */
-  _drawCommandCenterBackground() {
-    const gfx = this.add.graphics().setDepth(0);
-    const topColor = 0x0a0a1a;
-    const botColor = 0x0f1729;
-    const steps = 40;
-    for (let i = 0; i < steps; i++) {
-      const t = i / steps;
-      const c = lerpColor(topColor, botColor, t);
-      gfx.fillStyle(c, 1);
-      gfx.fillRect(0, Math.floor((H * i) / steps), W, Math.ceil(H / steps) + 1);
-    }
-
-    // Hexagonal grid pattern
-    const hexGfx = this.add.graphics().setDepth(1).setAlpha(0.03);
-    hexGfx.lineStyle(1, 0x4ade80);
-    for (let x = 0; x < W + 50; x += 50) {
-      for (let y = 0; y < H + 50; y += 44) {
-        const offset = (Math.floor(y / 44) % 2) * 25;
-        hexGfx.strokeCircle(x + offset, y, 22);
-      }
-    }
-  }
-
-  _createScreenDecorations() {
-    // Main "screen" border
-    const screenGfx = this.add.graphics().setDepth(5);
-    screenGfx.lineStyle(2, 0x4ade80, 0.3);
-    screenGfx.strokeRoundedRect(80, 130, W - 160, 340, 8);
-
-    // Corner accents
-    const corners = [
-      [80, 130], [W - 80, 130], [80, 470], [W - 80, 470],
-    ];
+    // Corner accent markers
+    const corners = [[30, 30], [W - 30, 30], [30, H - 30], [W - 30, H - 30]];
     corners.forEach(([cx, cy]) => {
-      screenGfx.fillStyle(0x4ade80, 0.6);
-      screenGfx.fillCircle(cx, cy, 3);
+      g.lineStyle(2, 0x00d4ff, 0.15);
+      g.strokeCircle(cx, cy, 8);
     });
 
-    // Status indicators on left
-    for (let i = 0; i < 4; i++) {
-      const y = 160 + i * 30;
-      this.add.circle(50, y, 4, i < 2 ? 0x4ade80 : 0x334155, 0.6).setDepth(5);
-    }
+    // Room border
+    g.lineStyle(2, 0x1a3a5c, 0.5);
+    g.strokeRect(10, 10, W - 20, H - 20);
+  }
 
-    // "MISSION CONTROL" text
-    this.add.text(W / 2, 145, "▸ FLOAT OPERATIONS TERMINAL", {
-      fontFamily: "monospace",
-      fontSize: "11px",
-      color: "#4ade80",
-      alpha: 0.5,
+  /* ─────────────────────────────────────────────────────────────
+   *  TEXTURES
+   * ───────────────────────────────────────────────────────────── */
+  _genTextures() {
+    const make = (key, color) => {
+      if (this.textures.exists(key)) return;
+      const g = this.add.graphics();
+      g.fillStyle(color, 1); g.fillCircle(4, 4, 4);
+      g.generateTexture(key, 8, 8); g.destroy();
+    };
+    make("cyanSpark", 0x00d4ff);
+    make("greenSpark", 0x4ade80);
+    make("pinkSpark", 0xf472b6);
+    make("goldSpark", 0xfbbf24);
+    make("whiteSpark", 0xffffff);
+    make("iceSpark", 0x88ddff);
+
+    // Engineer character (top-down)
+    if (!this.textures.exists("engineer")) {
+      const g = this.add.graphics();
+      // Body
+      g.fillStyle(0x3b82f6, 1);
+      g.fillRoundedRect(6, 8, 20, 24, 4);
+      // Head
+      g.fillStyle(0xfbbf24, 1);
+      g.fillCircle(16, 8, 7);
+      // Visor
+      g.fillStyle(0x00d4ff, 1);
+      g.fillRect(12, 5, 8, 4);
+      // Legs
+      g.fillStyle(0x1e3a5f, 1);
+      g.fillRect(8, 30, 6, 6);
+      g.fillRect(18, 30, 6, 6);
+      g.generateTexture("engineer", 32, 36);
+      g.destroy();
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+   *  MAIN CORE — center of room, pulses red initially
+   * ───────────────────────────────────────────────────────────── */
+  _createCore() {
+    const cx = W / 2, cy = H / 2;
+
+    this.coreOuter = this.add.circle(cx, cy, 50, 0x1a0000, 0.4).setDepth(5);
+    this.coreOuter.setStrokeStyle(3, 0xff0000, 0.5);
+    this.coreInner = this.add.circle(cx, cy, 28, 0xff0000, 0.3).setDepth(6);
+    this.coreInner.setStrokeStyle(2, 0xff4444, 0.8);
+
+    this.coreLabel = this.add.text(cx, cy + 62, "MAIN CORE", {
+      fontFamily: "monospace", fontSize: "11px", color: "#ff4444", fontStyle: "bold",
     }).setOrigin(0.5).setDepth(6);
-  }
 
-  /* ═══════════════════════════════════════════════════════════════
-   *  TEXTURES & PARTICLES
-   * ═══════════════════════════════════════════════════════════════ */
-  _generateTextures() {
-    if (!this.textures.exists("greenSpark")) {
-      const g = this.add.graphics();
-      g.fillStyle(0x4ade80, 1);
-      g.fillCircle(4, 4, 4);
-      g.generateTexture("greenSpark", 8, 8);
-      g.destroy();
-    }
-    if (!this.textures.exists("redSpark")) {
-      const g = this.add.graphics();
-      g.fillStyle(0xe74c3c, 1);
-      g.fillCircle(4, 4, 4);
-      g.generateTexture("redSpark", 8, 8);
-      g.destroy();
-    }
-    if (!this.textures.exists("confettiSpark")) {
-      const g = this.add.graphics();
-      g.fillStyle(0xffd700, 1);
-      g.fillCircle(4, 4, 4);
-      g.generateTexture("confettiSpark", 8, 8);
-      g.destroy();
-    }
-  }
+    this.coreStatusTxt = this.add.text(cx, cy + 76, "STATUS: OFFLINE", {
+      fontFamily: "monospace", fontSize: "9px", color: "#ef4444",
+    }).setOrigin(0.5).setDepth(6);
 
-  _createParticles() {
-    this.successParticles = this.add.particles(0, 0, "greenSpark", {
-      speed: { min: 80, max: 250 },
-      scale: { start: 1.2, end: 0 },
-      alpha: { start: 1, end: 0 },
-      lifespan: 700,
-      blendMode: "ADD",
-      emitting: false,
+    // Pulsing animation
+    this.tweens.add({
+      targets: this.coreInner, alpha: 0.1, yoyo: true, repeat: -1, duration: 800,
     });
-    this.errorParticles = this.add.particles(0, 0, "redSpark", {
-      speed: { min: 60, max: 180 },
-      scale: { start: 1, end: 0 },
-      alpha: { start: 1, end: 0 },
-      lifespan: 500,
-      blendMode: "ADD",
-      emitting: false,
-    });
-    this.confettiParticles = this.add.particles(0, 0, "confettiSpark", {
-      speed: { min: 40, max: 180 },
-      angle: { min: 230, max: 310 },
-      scale: { start: 1, end: 0.3 },
-      alpha: { start: 1, end: 0 },
-      lifespan: 2500,
-      gravityY: 120,
-      emitting: false,
+    this.tweens.add({
+      targets: this.coreOuter, scaleX: 1.05, scaleY: 1.05, yoyo: true, repeat: -1, duration: 1200,
     });
   }
 
-  /* ═══════════════════════════════════════════════════════════════
+  /* ─────────────────────────────────────────────────────────────
+   *  TERMINALS — 3 interactive stations around the room
+   * ───────────────────────────────────────────────────────────── */
+  _createTerminals() {
+    this.terminals = [];
+    const defs = [
+      { x: 120, y: 130, label: "T1: Power\nRouting", color: 0x00d4ff, solvedColor: 0x00d4ff },
+      { x: W - 120, y: 130, label: "T2: Coolant\nStabilize", color: 0x3b82f6, solvedColor: 0x3b82f6 },
+      { x: W / 2, y: H - 100, label: "T3: Laser\nAlignment", color: 0xf472b6, solvedColor: 0xf472b6 },
+    ];
+
+    defs.forEach((d, i) => {
+      const bg = this.add.rectangle(d.x, d.y, TERMINAL_SIZE, TERMINAL_SIZE, 0x0f1a2e, 0.9).setDepth(8);
+      bg.setStrokeStyle(2, d.color, 0.6);
+
+      const icon = this.add.text(d.x, d.y - 6, ">_", {
+        fontFamily: "Courier New", fontSize: "18px", color: "#" + d.color.toString(16).padStart(6, "0"),
+        fontStyle: "bold",
+      }).setOrigin(0.5).setDepth(9);
+
+      const label = this.add.text(d.x, d.y + TERMINAL_SIZE / 2 + 14, d.label, {
+        fontFamily: "monospace", fontSize: "9px", color: "#64748b", align: "center",
+      }).setOrigin(0.5).setDepth(9);
+
+      // Indicator dot (unsolved = dim, solved = bright)
+      const dot = this.add.circle(d.x + TERMINAL_SIZE / 2 - 6, d.y - TERMINAL_SIZE / 2 + 6, 4, 0x333333).setDepth(10);
+
+      // Pulse when unsolved
+      this.tweens.add({
+        targets: bg, alpha: 0.6, yoyo: true, repeat: -1, duration: 1500,
+      });
+
+      // Physics zone for overlap
+      const zone = this.add.zone(d.x, d.y, TERMINAL_SIZE + 20, TERMINAL_SIZE + 20).setDepth(1);
+      this.physics.add.existing(zone, true);
+
+      this.terminals.push({ bg, icon, label, dot, zone, solved: false, def: d, idx: i });
+    });
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+   *  PLAYER
+   * ───────────────────────────────────────────────────────────── */
+  _createPlayer() {
+    this.player = this.physics.add.sprite(W / 2, H / 2 + 120, "engineer");
+    this.player.setCollideWorldBounds(true);
+    this.player.setDrag(300);
+    this.player.body.setAllowGravity(false);
+    this.player.body.setSize(20, 24, true);
+    this.player.setDepth(30);
+
+    // Player glow
+    this.playerGlow = this.add.circle(this.player.x, this.player.y, 18, 0x3b82f6, 0.08).setDepth(29);
+
+    // Set up overlaps with terminals
+    this.terminals.forEach(t => {
+      this.physics.add.overlap(this.player, t.zone, () => {
+        if (!t.solved && !this.panelOpen && !this.isComplete) {
+          this._openTerminal(t.idx);
+        }
+      });
+    });
+  }
+
+  /* ─────────────────────────────────────────────────────────────
    *  HUD
-   * ═══════════════════════════════════════════════════════════════ */
+   * ───────────────────────────────────────────────────────────── */
   _createHUD() {
     const dp = 100;
 
-    // Score
-    this.scoreText = this.add.text(16, 68, "Score: 0", {
-      fontFamily: "monospace",
-      fontSize: "20px",
-      color: "#4ade80",
-      fontStyle: "bold",
-      stroke: "#0a0a1a",
-      strokeThickness: 3,
-    }).setDepth(dp);
+    this.add.rectangle(W / 2, 28, W, 56, 0x0a0f1a, 0.92).setDepth(dp);
 
-    // Progress
-    this.add.text(W / 2, 68, "Problems", {
-      fontFamily: "monospace",
-      fontSize: "12px",
-      color: "#4ade80",
-      fontStyle: "bold",
-    }).setOrigin(0.5, 0).setDepth(dp);
+    this.scoreText = this.add.text(16, 18, "Score: 0", {
+      fontFamily: "monospace", fontSize: "16px", color: "#ffffff", fontStyle: "bold",
+    }).setDepth(dp + 1);
 
-    this.progressBarBg = this.add.rectangle(W / 2, 90, 260, 16, 0x0f1729, 0.6)
-      .setStrokeStyle(1, 0x4ade80, 0.5).setDepth(dp);
-    this.progressBarFill = this.add.rectangle(W / 2 - 130, 90, 0, 14, 0x4ade80)
-      .setOrigin(0, 0.5).setDepth(dp + 1);
-    this.progressTextHUD = this.add.text(W / 2, 90, "0 / 18", {
-      fontFamily: "monospace",
-      fontSize: "11px",
-      color: "#ffffff",
-      fontStyle: "bold",
-    }).setOrigin(0.5).setDepth(dp + 2);
+    this.add.text(W / 2, 14, "Terminals Restored", {
+      fontFamily: "monospace", fontSize: "11px", color: "#64748b",
+    }).setOrigin(0.5).setDepth(dp + 1);
 
-    // Lives
-    this.livesIcons = [];
-    for (let i = 0; i < MAX_LIVES; i++) {
-      const heart = this.add.text(W - 30 - i * 35, 72, "❤️", {
-        fontSize: "22px",
-      }).setOrigin(0.5).setDepth(dp);
-      this.livesIcons.push(heart);
-    }
+    this.progressBg = this.add.rectangle(W / 2, 34, 200, 10, 0x1e293b).setStrokeStyle(1, 0x334155).setDepth(dp + 1);
+    this.progressFill = this.add.rectangle(W / 2 - 100, 34, 0, 8, 0x4ade80).setOrigin(0, 0.5).setDepth(dp + 2);
+    this.progressTxt = this.add.text(W / 2, 34, "0 / 3", {
+      fontFamily: "monospace", fontSize: "9px", color: "#ffffff", fontStyle: "bold",
+    }).setOrigin(0.5).setDepth(dp + 3);
 
-    // Timer bar
-    this.timerBarBg = this.add.rectangle(W / 2, 115, 500, 8, 0x0f1729, 0.6)
-      .setStrokeStyle(1, 0x334155).setDepth(dp);
-    this.timerBarFill = this.add.rectangle(W / 2 - 250, 115, 500, 6, 0x4ade80)
-      .setOrigin(0, 0.5).setDepth(dp + 1);
-
-    // Category label
-    this.categoryLabel = this.add.text(W / 2, H - 55, "", {
-      fontFamily: "monospace",
-      fontSize: "12px",
-      color: "#64748b",
-      fontStyle: "bold",
+    // Instruction hint
+    this.hintTxt = this.add.text(W / 2, H - 16, "Walk to a terminal to interact", {
+      fontFamily: "monospace", fontSize: "11px", color: "#475569",
     }).setOrigin(0.5).setDepth(dp);
-
-    // Tooltip
-    this.tooltip = this.add.text(W / 2, H - 25, "", {
-      fontFamily: "Arial",
-      fontSize: "14px",
-      color: "#ffffff",
-      backgroundColor: "rgba(10, 10, 26, 0.9)",
-      padding: { x: 14, y: 6 },
-      align: "center",
-      wordWrap: { width: 650 },
-    }).setOrigin(0.5).setAlpha(0).setDepth(dp + 10);
-
-    // Combo
-    this.comboText = this.add.text(W / 2, 46, "", {
-      fontFamily: "monospace",
-      fontSize: "15px",
-      color: "#fbbf24",
-      fontStyle: "bold",
-      stroke: "#0a0a1a",
-      strokeThickness: 2,
-    }).setOrigin(0.5).setAlpha(0).setDepth(dp);
   }
 
-  /* ═══════════════════════════════════════════════════════════════
-   *  INSTRUCTION OVERLAY
-   * ═══════════════════════════════════════════════════════════════ */
-  _showInstruction() {
-    const overlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.85).setDepth(200);
+  _updateProgress() {
+    this.progressFill.width = 200 * (this.terminalsSolved / 3);
+    this.progressTxt.setText(`${this.terminalsSolved} / 3`);
+    this.scoreText.setText(`Score: ${this.score}`);
+  }
 
-    const panelG = this.add.graphics().setDepth(201);
-    panelG.fillStyle(0x0a0a1a, 0.98);
-    panelG.fillRoundedRect(W / 2 - 320, 50, 640, 480, 16);
-    panelG.lineStyle(3, 0x4ade80);
-    panelG.strokeRoundedRect(W / 2 - 320, 50, 640, 480, 16);
+  /* ─────────────────────────────────────────────────────────────
+   *  PARTICLES
+   * ───────────────────────────────────────────────────────────── */
+  _createParticles() {
+    this.sparkParticles = this.add.particles(0, 0, "cyanSpark", {
+      speed: { min: 60, max: 200 }, scale: { start: 1.2, end: 0 },
+      alpha: { start: 1, end: 0 }, lifespan: 600, blendMode: "ADD", emitting: false,
+    }).setDepth(50);
 
-    const title = this.add.text(W / 2, 90, "🚀 MISSION 6: FLOAT OPERATIONS", {
-      fontFamily: "Arial Black, Arial, sans-serif",
-      fontSize: "26px",
-      color: "#4ade80",
-      fontStyle: "bold",
-    }).setOrigin(0.5).setDepth(202);
+    this.iceParticles = this.add.particles(0, 0, "iceSpark", {
+      speed: { min: 30, max: 120 }, angle: { min: 250, max: 290 },
+      scale: { start: 1, end: 0.3 }, alpha: { start: 0.8, end: 0 },
+      lifespan: 1500, gravityY: 40, emitting: false,
+    }).setDepth(50);
 
-    const sub = this.add.text(W / 2, 125, "Mission Control Calculator", {
-      fontFamily: "Arial",
-      fontSize: "18px",
-      color: "#86efac",
-      fontStyle: "italic",
-    }).setOrigin(0.5).setDepth(202);
+    this.victoryParticles = this.add.particles(0, 0, "greenSpark", {
+      speed: { min: 80, max: 350 }, scale: { start: 1.5, end: 0 },
+      alpha: { start: 1, end: 0 }, lifespan: 1200, blendMode: "ADD", emitting: false,
+    }).setDepth(50);
+  }
 
-    const desc = this.add.text(W / 2, 235,
-      "Apply everything you've learned about floats!\n\n" +
-      "➕ Phase 1: Addition & Subtraction (5 problems)\n" +
-      "✖️ Phase 2: Multiplication & Division (5 problems)\n" +
-      "⚠️ Phase 3: Precision Awareness (4 problems)\n" +
-      "🌍 Phase 4: Real-World Scenarios (4 problems)\n\n" +
-      "Click the correct answer. You have 15 seconds!\n" +
-      "Speed bonus: faster answers earn more XP.\n" +
-      "You have 3 lives — use them wisely!",
-      {
-        fontFamily: "Arial",
-        fontSize: "15px",
-        color: "#bdc3c7",
-        align: "center",
-        lineSpacing: 6,
-      }
-    ).setOrigin(0.5).setDepth(202);
+  /* ─────────────────────────────────────────────────────────────
+   *  INTRO OVERLAY
+   * ───────────────────────────────────────────────────────────── */
+  _showIntro() {
+    const els = [];
+    const track = (e) => { els.push(e); return e; };
 
-    const goal = this.add.text(W / 2, 415, "Solve 18 problems with 80%+ accuracy\nto earn the Calculation Wizard badge! 🧮", {
-      fontFamily: "Arial",
-      fontSize: "14px",
-      color: "#f1c40f",
-      align: "center",
-      fontStyle: "bold",
-      lineSpacing: 6,
-    }).setOrigin(0.5).setDepth(202);
+    track(this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.88).setDepth(200)).setInteractive();
 
-    const btnBg = this.add.rectangle(W / 2, 470, 260, 48, 0x166534, 1).setDepth(202);
+    const pg = track(this.add.graphics().setDepth(201));
+    pg.fillStyle(0x0a0f1a, 0.98);
+    pg.fillRoundedRect(70, 45, 660, 490, 16);
+    pg.lineStyle(3, 0x4ade80);
+    pg.strokeRoundedRect(70, 45, 660, 490, 16);
+
+    track(this.add.text(400, 80, "MISSION 6: CYBER-CORE RESTORATION", {
+      fontFamily: "Arial Black", fontSize: "22px", color: "#4ade80", fontStyle: "bold",
+    }).setOrigin(0.5).setDepth(202));
+
+    track(this.add.text(400, 112, "Float Restructuring Phase", {
+      fontFamily: "Arial", fontSize: "16px", color: "#86efac", fontStyle: "italic",
+    }).setOrigin(0.5).setDepth(202));
+
+    const desc =
+      "\nThe Main Core is OFFLINE. Three terminals must be restored\n" +
+      "by solving float arithmetic problems.\n\n" +
+      "TERMINAL 1 - Power Routing      (Float Addition)\n" +
+      "TERMINAL 2 - Coolant Stabilize  (Float Subtraction)\n" +
+      "TERMINAL 3 - Laser Alignment    (Float Constraints)\n\n" +
+      "Walk to each terminal with Arrow Keys or WASD.\n" +
+      "Solve the code challenge to restore each system.\n\n" +
+      "Restore ALL 3 terminals to bring the Core online!";
+
+    track(this.add.text(400, 160, desc, {
+      fontFamily: "Arial", fontSize: "13px", color: "#cbd5e1",
+      align: "center", lineSpacing: 6, wordWrap: { width: 560 },
+    }).setOrigin(0.5, 0).setDepth(202));
+
+    const btnBg = track(this.add.rectangle(400, 492, 220, 44, 0x166534).setDepth(210));
     btnBg.setStrokeStyle(2, 0x4ade80);
-    const btnTxt = this.add.text(W / 2, 470, "LAUNCH MISSION", {
-      fontFamily: "Arial",
-      fontSize: "20px",
-      color: "#ffffff",
-      fontStyle: "bold",
-    }).setOrigin(0.5).setDepth(203);
+    track(this.add.text(400, 492, ">>  BEGIN MISSION", {
+      fontFamily: "Arial", fontSize: "17px", color: "#ffffff", fontStyle: "bold",
+    }).setOrigin(0.5).setDepth(211));
 
     btnBg.setInteractive({ useHandCursor: true });
-    btnBg.on("pointerover", () => {
-      btnBg.setFillStyle(0x4ade80);
-      this.tweens.add({ targets: [btnBg, btnTxt], scaleX: 1.08, scaleY: 1.08, duration: 120 });
-    });
-    btnBg.on("pointerout", () => {
-      btnBg.setFillStyle(0x166534);
-      this.tweens.add({ targets: [btnBg, btnTxt], scaleX: 1, scaleY: 1, duration: 120 });
-    });
+    btnBg.on("pointerover", () => btnBg.setFillStyle(0x4ade80));
+    btnBg.on("pointerout", () => btnBg.setFillStyle(0x166534));
     btnBg.on("pointerup", () => {
-      [overlay, panelG, title, sub, desc, goal, btnBg, btnTxt].forEach(e => e.destroy());
-      this._startGame();
+      els.forEach(e => { try { e.destroy(); } catch (_) {} });
+      this.gameStarted = true;
     });
   }
 
   /* ═══════════════════════════════════════════════════════════════
-   *  START GAME
+   *  TERMINAL INTERACTION — DOM Code Panels
    * ═══════════════════════════════════════════════════════════════ */
-  _startGame() {
-    this.gameStarted = true;
-    this.startTime = this.time.now;
-    GameManager.set("lives", MAX_LIVES);
-    this._showNextProblem();
+  _openTerminal(idx) {
+    if (this.panelOpen || this.terminals[idx].solved) return;
+    this.panelOpen = true;
+    this.activeTerminalIdx = idx;
+    this.player.body.setVelocity(0, 0);
+
+    if (idx === 0) this._buildTerminal1Panel();
+    else if (idx === 1) this._buildTerminal2Panel();
+    else this._buildTerminal3Panel();
   }
 
-  /* ═══════════════════════════════════════════════════════════════
-   *  PROBLEM DISPLAY
-   * ═══════════════════════════════════════════════════════════════ */
-  _showNextProblem() {
-    if (this.isComplete) return;
-    if (this.currentProblem >= TOTAL_PROBLEMS) {
-      this._checkLevelEnd();
-      return;
+  _closePanel() {
+    if (this.activeDom) {
+      this.activeDom.destroy();
+      this.activeDom = null;
     }
-
-    this._clearProblemElements();
-
-    const problem = this.problems[this.currentProblem];
-    this.problemActive = true;
-    this.problemStartTime = this.time.now;
-
-    // Category label
-    this.categoryLabel.setText(`[ ${problem.category.toUpperCase()} — Problem ${this.currentProblem + 1}/${TOTAL_PROBLEMS} ]`);
-
-    // Phase header color
-    let phaseColor;
-    if (this.currentProblem < 5) phaseColor = 0x38bdf8;
-    else if (this.currentProblem < 10) phaseColor = 0xf59e0b;
-    else if (this.currentProblem < 14) phaseColor = 0xef4444;
-    else phaseColor = 0x4ade80;
-
-    // Timer
-    this.timerBarFill.width = 500;
-    this.timerBarFill.setFillStyle(0x4ade80);
-    if (this.timerBarTween) this.timerBarTween.destroy();
-    this.timerBarTween = this.tweens.add({
-      targets: this.timerBarFill,
-      width: 0,
-      duration: PROBLEM_TIME,
-      ease: "Linear",
-      onUpdate: () => {
-        const pct = this.timerBarFill.width / 500;
-        if (pct < 0.2) this.timerBarFill.setFillStyle(0xe74c3c);
-        else if (pct < 0.4) this.timerBarFill.setFillStyle(0xf1c40f);
-      },
-    });
-
-    if (this.timerEvent) this.timerEvent.destroy();
-    this.timerEvent = this.time.delayedCall(PROBLEM_TIME, () => {
-      if (this.problemActive) this._onTimeout();
-    });
-
-    // Problem display
-    const questionText = this.add.text(W / 2, 230, problem.question, {
-      fontFamily: "Courier New, monospace",
-      fontSize: "32px",
-      color: "#e2e8f0",
-      fontStyle: "bold",
-      align: "center",
-      lineSpacing: 8,
-      shadow: { blur: 10, color: Phaser.Display.Color.IntegerToColor(phaseColor).rgba, fill: true },
-    }).setOrigin(0.5).setDepth(110);
-    this.problemElements.push(questionText);
-
-    // Entrance animation
-    questionText.setAlpha(0).setScale(0.8);
-    this.tweens.add({
-      targets: questionText,
-      alpha: 1,
-      scaleX: 1,
-      scaleY: 1,
-      duration: 300,
-      ease: "Back.out",
-    });
-
-    // Answer options (2×2 grid)
-    const shuffled = shuffleArray(problem.options);
-
-    shuffled.forEach((opt, i) => {
-      const col = i % 2;
-      const row = Math.floor(i / 2);
-      const bx = 280 + col * 240;
-      const by = 360 + row * 70;
-
-      const displayStr = typeof opt === "number" ? String(opt) : opt;
-      const isCorrect = typeof problem.answer === "number"
-        ? opt === problem.answer
-        : opt === problem.answer || (problem.answerLabel && opt === problem.answerLabel);
-
-      const btn = this._createAnswerButton(bx, by, 210, 55, displayStr, phaseColor, () => {
-        this._handleAnswer(isCorrect, problem.tip);
-      });
-      this.problemElements.push(...btn);
-    });
-  }
-
-  _clearProblemElements() {
-    this.problemElements.forEach(el => {
-      if (el && el.destroy) el.destroy();
-    });
-    this.problemElements = [];
-  }
-
-  /* ═══════════════════════════════════════════════════════════════
-   *  ANSWER BUTTON
-   * ═══════════════════════════════════════════════════════════════ */
-  _createAnswerButton(x, y, w, h, label, accentColor, callback) {
-    const bg = this.add.rectangle(x, y, w, h, 0x0f1729, 0.9).setDepth(110);
-    bg.setStrokeStyle(2, 0x334155);
-
-    const txt = this.add.text(x, y, label, {
-      fontFamily: "Courier New, monospace",
-      fontSize: label.length > 15 ? "14px" : "18px",
-      color: "#e2e8f0",
-      fontStyle: "bold",
-    }).setOrigin(0.5).setDepth(111);
-
-    bg.setInteractive({ useHandCursor: true });
-    bg.on("pointerover", () => {
-      bg.setStrokeStyle(2, accentColor);
-      bg.setFillStyle(0x1e293b, 0.9);
-      this.tweens.add({ targets: [bg, txt], scaleX: 1.05, scaleY: 1.05, duration: 100 });
-    });
-    bg.on("pointerout", () => {
-      bg.setStrokeStyle(2, 0x334155);
-      bg.setFillStyle(0x0f1729, 0.9);
-      this.tweens.add({ targets: [bg, txt], scaleX: 1, scaleY: 1, duration: 100 });
-    });
-    bg.on("pointerup", callback);
-
-    return [bg, txt];
-  }
-
-  /* ═══════════════════════════════════════════════════════════════
-   *  ANSWER HANDLING
-   * ═══════════════════════════════════════════════════════════════ */
-  _handleAnswer(correct, tipText) {
-    if (!this.problemActive) return;
-    this.problemActive = false;
-    this.totalAnswered++;
-    this.currentProblem++;
-
-    if (this.timerEvent) this.timerEvent.destroy();
-    if (this.timerBarTween) this.timerBarTween.destroy();
-
-    // Speed bonus: answer within 5s = bonus XP
-    const answerTime = this.time.now - (this.problemStartTime || this.time.now);
-    const speedBonus = answerTime < 5000 ? 5 : 0;
-
-    if (correct) {
-      this._onCorrectAnswer(tipText, speedBonus);
-    } else {
-      this._onWrongAnswer(tipText);
+    if (this._panelOverlay) {
+      this._panelOverlay.destroy();
+      this._panelOverlay = null;
     }
-
-    this._updateHUD();
-
-    this.time.delayedCall(2000, () => {
-      if (!this.isComplete) this._showNextProblem();
-    });
+    this.panelOpen = false;
+    this.activeTerminalIdx = -1;
   }
 
-  _onCorrectAnswer(tipText, speedBonus) {
-    this.correctAnswers++;
-    this.combo++;
-    this.score += 20 + speedBonus;
+  _markTerminalSolved(idx) {
+    const t = this.terminals[idx];
+    t.solved = true;
+    this.terminalsSolved++;
+    this.score += 100;
+    GameManager.addScore(100);
+    GameManager.addXP(200);
 
-    const xp = (20 + speedBonus) * GameManager.getComboMultiplier();
-    GameManager.addXP(xp);
-    GameManager.addScore(20 + speedBonus);
-    GameManager.addCombo();
+    // Visual feedback on terminal
+    t.dot.setFillStyle(t.def.solvedColor);
+    t.bg.setStrokeStyle(3, t.def.solvedColor, 1);
+    t.bg.setAlpha(1);
+    this.tweens.killTweensOf(t.bg);
 
-    this.successParticles.emitParticleAt(W / 2, 280, 25);
-    this.cameras.main.flash(200, 0, 150, 0);
+    // Sparks at terminal
+    this.sparkParticles.emitParticleAt(t.def.x, t.def.y, 25);
+    this.cameras.main.flash(300, 0, 200, 255);
 
-    const bonusLabel = speedBonus > 0 ? ` (+${speedBonus} speed!)` : "";
-    this._showPopup(W / 2, 180, `+${20 + speedBonus}${bonusLabel}`, "#4ade80");
-    this._showTooltip(`✓ ${tipText}`, "#4ade80");
+    this._updateProgress();
+    this._closePanel();
 
-    if (this.combo >= 5) {
-      this.cameras.main.flash(200, 255, 215, 0);
+    if (this.terminalsSolved === 3) {
+      this.time.delayedCall(800, () => this._victorySequence());
     }
   }
 
-  _onWrongAnswer(tipText) {
-    this.combo = 0;
-    this.score = Math.max(0, this.score - 10);
-    this.lives--;
+  /* ─── Terminal 1: Float Addition ─── */
+  _buildTerminal1Panel() {
+    this._panelOverlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.7).setDepth(150).setInteractive();
 
-    GameManager.resetCombo();
-    GameManager.loseLife();
+    const html = `
+      <div style="width:460px; background:#0d1117; border:2px solid #00d4ff; border-radius:12px; padding:24px; font-family:'Courier New',monospace; color:#c9d1d9;">
+        <div style="color:#00d4ff; font-size:16px; font-weight:bold; margin-bottom:12px;">TERMINAL 1: POWER ROUTING</div>
+        <div style="color:#fbbf24; font-size:13px; margin-bottom:16px;">CRITICAL: Route power to exactly <span style="color:#4ade80; font-weight:bold;">12.75V</span></div>
+        <div style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:14px; margin-bottom:16px; line-height:2;">
+          <span style="color:#ff7b72;">float</span> batteryA = <span style="color:#79c0ff;">4.50</span>;<br>
+          <span style="color:#ff7b72;">float</span> batteryB = <span style="color:#79c0ff;">5.25</span>;<br>
+          <span style="color:#ff7b72;">float</span> backupCell = <input id="t1Input" type="text" placeholder="?" 
+            style="width:60px; background:#0d1117; border:2px solid #00d4ff; border-radius:4px; color:#4ade80; 
+            font-family:'Courier New'; font-size:15px; text-align:center; padding:4px; outline:none;" autofocus>;<br>
+          <br><span style="color:#8b949e;">// Total = batteryA + batteryB + backupCell</span><br>
+          <span style="color:#8b949e;">// Must equal 12.75V</span>
+        </div>
+        <div style="display:flex; gap:10px; justify-content:center;">
+          <button id="t1Submit" style="background:#166534; color:#4ade80; border:2px solid #4ade80; border-radius:8px; padding:10px 28px; font-family:'Courier New'; font-size:14px; font-weight:bold; cursor:pointer;">SUBMIT</button>
+          <button id="t1Close" style="background:#1e293b; color:#94a3b8; border:1px solid #334155; border-radius:8px; padding:10px 20px; font-family:'Courier New'; font-size:13px; cursor:pointer;">CANCEL</button>
+        </div>
+        <div id="t1Feedback" style="color:#ef4444; font-size:12px; text-align:center; margin-top:10px; min-height:18px;"></div>
+      </div>
+    `;
 
-    this.errorParticles.emitParticleAt(W / 2, 280, 15);
-    this.cameras.main.shake(250, 0.015);
-    this.cameras.main.flash(200, 255, 0, 0);
+    this.activeDom = this.add.dom(W / 2, H / 2).createFromHTML(html).setDepth(160);
 
-    this._showPopup(W / 2, 180, "-10", "#e74c3c");
-    this._showTooltip(`✗ ${tipText}`, "#e74c3c");
-
-    this._updateLives();
-
-    if (this.lives <= 0) {
-      this.time.delayedCall(800, () => this._gameOver());
-    }
-  }
-
-  _onTimeout() {
-    this._handleAnswer(false, "Time's up! Think faster next round.");
-  }
-
-  /* ═══════════════════════════════════════════════════════════════
-   *  HUD UPDATES
-   * ═══════════════════════════════════════════════════════════════ */
-  _updateHUD() {
-    if (this.scoreText && this.scoreText.active) {
-      this.scoreText.setText(`Score: ${this.score}`);
-      this.tweens.add({
-        targets: this.scoreText,
-        scaleX: 1.15, scaleY: 1.15,
-        yoyo: true,
-        duration: 100,
-      });
-    }
-
-    if (this.progressBarFill && this.progressTextHUD) {
-      const pct = Math.min(this.currentProblem / TOTAL_PROBLEMS, 1);
-      this.tweens.add({
-        targets: this.progressBarFill,
-        width: 260 * pct,
-        duration: 300,
-        ease: "Cubic.out",
-      });
-      this.progressTextHUD.setText(`${this.currentProblem} / ${TOTAL_PROBLEMS}`);
-    }
-
-    if (this.comboText) {
-      if (this.combo >= 2) {
-        const mult = GameManager.getComboMultiplier();
-        this.comboText.setText(`${this.combo}x COMBO!${mult > 1 ? ` (${mult}x XP)` : ""}`);
-        this.comboText.setAlpha(1);
-        this.tweens.add({
-          targets: this.comboText,
-          scaleX: 1.2, scaleY: 1.2,
-          yoyo: true,
-          duration: 150,
-        });
+    const el = this.activeDom.node;
+    el.querySelector("#t1Submit").addEventListener("click", () => {
+      const val = el.querySelector("#t1Input").value.trim();
+      const num = parseFloat(val);
+      if (!isNaN(num) && Math.abs(num - 3.0) < 0.01) {
+        this._markTerminalSolved(0);
       } else {
-        this.comboText.setAlpha(0);
+        el.querySelector("#t1Feedback").textContent = `Wrong! 4.50 + 5.25 + ${val || "?"} != 12.75. Try again.`;
+        this.cameras.main.shake(150, 0.008);
       }
-    }
+    });
+
+    el.querySelector("#t1Close").addEventListener("click", () => this._closePanel());
+
+    el.querySelector("#t1Input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") el.querySelector("#t1Submit").click();
+      if (e.key === "Escape") this._closePanel();
+    });
   }
 
-  _updateLives() {
-    for (let i = 0; i < MAX_LIVES; i++) {
-      if (this.livesIcons[i]) {
-        this.livesIcons[i].setText(i < this.lives ? "❤️" : "🖤");
-        if (i >= this.lives) {
-          this.tweens.add({
-            targets: this.livesIcons[i],
-            scaleX: 1.3, scaleY: 1.3,
-            yoyo: true,
-            duration: 150,
-          });
+  /* ─── Terminal 2: Float Subtraction ─── */
+  _buildTerminal2Panel() {
+    this._panelOverlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.7).setDepth(150).setInteractive();
+
+    const html = `
+      <div style="width:460px; background:#0d1117; border:2px solid #3b82f6; border-radius:12px; padding:24px; font-family:'Courier New',monospace; color:#c9d1d9;">
+        <div style="color:#3b82f6; font-size:16px; font-weight:bold; margin-bottom:12px;">TERMINAL 2: COOLANT STABILIZATION</div>
+        <div style="color:#fbbf24; font-size:13px; margin-bottom:16px;">CRITICAL: Calculate the required cooling amount</div>
+        <div style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:14px; margin-bottom:16px; line-height:2;">
+          <span style="color:#ff7b72;">float</span> currentTemp = <span style="color:#79c0ff;">105.5</span>;<br>
+          <span style="color:#ff7b72;">float</span> optimalTemp = <span style="color:#79c0ff;">82.2</span>;<br>
+          <span style="color:#ff7b72;">float</span> requiredCooling = currentTemp - optimalTemp;<br>
+          <br><span style="color:#8b949e;">// What is requiredCooling?</span><br>
+          <span style="color:#8b949e;">// Type the result:</span>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:14px;">
+          <span style="color:#94a3b8;">requiredCooling =</span>
+          <input id="t2Input" type="text" placeholder="?" 
+            style="width:80px; background:#0d1117; border:2px solid #3b82f6; border-radius:4px; color:#4ade80; 
+            font-family:'Courier New'; font-size:15px; text-align:center; padding:4px; outline:none;" autofocus>
+        </div>
+        <div style="display:flex; gap:10px; justify-content:center;">
+          <button id="t2Submit" style="background:#1e3a5f; color:#60a5fa; border:2px solid #3b82f6; border-radius:8px; padding:10px 28px; font-family:'Courier New'; font-size:14px; font-weight:bold; cursor:pointer;">SUBMIT</button>
+          <button id="t2Close" style="background:#1e293b; color:#94a3b8; border:1px solid #334155; border-radius:8px; padding:10px 20px; font-family:'Courier New'; font-size:13px; cursor:pointer;">CANCEL</button>
+        </div>
+        <div id="t2Feedback" style="color:#ef4444; font-size:12px; text-align:center; margin-top:10px; min-height:18px;"></div>
+      </div>
+    `;
+
+    this.activeDom = this.add.dom(W / 2, H / 2).createFromHTML(html).setDepth(160);
+
+    const el = this.activeDom.node;
+    el.querySelector("#t2Submit").addEventListener("click", () => {
+      const val = el.querySelector("#t2Input").value.trim();
+      const num = parseFloat(val);
+      if (!isNaN(num) && Math.abs(num - 23.3) < 0.05) {
+        // Ice/snow effect at terminal
+        const t = this.terminals[1];
+        this.iceParticles.emitParticleAt(t.def.x, t.def.y, 30);
+        this._markTerminalSolved(1);
+      } else {
+        el.querySelector("#t2Feedback").textContent = `Wrong! 105.5 - 82.2 = ? (not "${val || "?"}"). Try again.`;
+        this.cameras.main.shake(150, 0.008);
+      }
+    });
+
+    el.querySelector("#t2Close").addEventListener("click", () => this._closePanel());
+
+    el.querySelector("#t2Input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") el.querySelector("#t2Submit").click();
+      if (e.key === "Escape") this._closePanel();
+    });
+  }
+
+  /* ─── Terminal 3: Float Constraints ─── */
+  _buildTerminal3Panel() {
+    this._panelOverlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.7).setDepth(150).setInteractive();
+
+    const html = `
+      <div style="width:500px; background:#0d1117; border:2px solid #f472b6; border-radius:12px; padding:24px; font-family:'Courier New',monospace; color:#c9d1d9;">
+        <div style="color:#f472b6; font-size:16px; font-weight:bold; margin-bottom:12px;">TERMINAL 3: LASER ALIGNMENT</div>
+        <div style="color:#fbbf24; font-size:13px; margin-bottom:16px;">CRITICAL: Adjust angle into valid range <span style="color:#4ade80;">[45.0, 46.0]</span></div>
+        <div style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:14px; margin-bottom:16px; line-height:2;">
+          <span style="color:#ff7b72;">float</span> minAngle = <span style="color:#79c0ff;">45.0</span>;<br>
+          <span style="color:#ff7b72;">float</span> maxAngle = <span style="color:#79c0ff;">46.0</span>;<br>
+          <span style="color:#ff7b72;">float</span> currentAngle = <span style="color:#79c0ff;">42.5</span>;<br>
+          <br><span style="color:#8b949e;">// Pick the adjustment that puts currentAngle</span><br>
+          <span style="color:#8b949e;">// within [minAngle, maxAngle]:</span>
+        </div>
+        <div style="display:flex; gap:12px; justify-content:center; margin-bottom:14px;">
+          <button class="t3Btn" data-val="2.1" style="background:#1e293b; color:#f472b6; border:2px solid #f472b6; border-radius:8px; padding:12px 24px; font-family:'Courier New'; font-size:16px; font-weight:bold; cursor:pointer;">+2.1</button>
+          <button class="t3Btn" data-val="3.2" style="background:#1e293b; color:#f472b6; border:2px solid #f472b6; border-radius:8px; padding:12px 24px; font-family:'Courier New'; font-size:16px; font-weight:bold; cursor:pointer;">+3.2</button>
+          <button class="t3Btn" data-val="4.5" style="background:#1e293b; color:#f472b6; border:2px solid #f472b6; border-radius:8px; padding:12px 24px; font-family:'Courier New'; font-size:16px; font-weight:bold; cursor:pointer;">+4.5</button>
+        </div>
+        <div style="text-align:center; margin-bottom:10px;">
+          <button id="t3Close" style="background:#1e293b; color:#94a3b8; border:1px solid #334155; border-radius:8px; padding:8px 20px; font-family:'Courier New'; font-size:12px; cursor:pointer;">CANCEL</button>
+        </div>
+        <div id="t3Feedback" style="color:#ef4444; font-size:12px; text-align:center; min-height:18px;"></div>
+      </div>
+    `;
+
+    this.activeDom = this.add.dom(W / 2, H / 2).createFromHTML(html).setDepth(160);
+
+    const el = this.activeDom.node;
+    el.querySelectorAll(".t3Btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const adj = parseFloat(btn.dataset.val);
+        const result = 42.5 + adj;
+        if (result >= 45.0 && result <= 46.0) {
+          // Draw laser line from Terminal 3 to Core
+          this._drawLaserLine();
+          this._markTerminalSolved(2);
+        } else {
+          el.querySelector("#t3Feedback").textContent =
+            `42.5 + ${adj} = ${result.toFixed(1)} — NOT in [45.0, 46.0]. Try another!`;
+          this.cameras.main.shake(150, 0.008);
         }
-      }
+      });
+    });
+
+    el.querySelector("#t3Close").addEventListener("click", () => this._closePanel());
+  }
+
+  _drawLaserLine() {
+    const t3 = this.terminals[2].def;
+    const cx = W / 2, cy = H / 2;
+
+    const laserGfx = this.add.graphics().setDepth(7);
+    laserGfx.lineStyle(4, 0xf472b6, 0.9);
+    laserGfx.beginPath();
+    laserGfx.moveTo(t3.x, t3.y);
+    laserGfx.lineTo(cx, cy);
+    laserGfx.strokePath();
+
+    // Glow line
+    laserGfx.lineStyle(10, 0xf472b6, 0.15);
+    laserGfx.beginPath();
+    laserGfx.moveTo(t3.x, t3.y);
+    laserGfx.lineTo(cx, cy);
+    laserGfx.strokePath();
+
+    // Spark burst along line
+    const steps = 8;
+    for (let i = 0; i <= steps; i++) {
+      const frac = i / steps;
+      const px = t3.x + (cx - t3.x) * frac;
+      const py = t3.y + (cy - t3.y) * frac;
+      this.time.delayedCall(i * 60, () => {
+        this.sparkParticles.emitParticleAt(px, py, 5);
+      });
     }
   }
 
   /* ═══════════════════════════════════════════════════════════════
-   *  POPUPS & TOOLTIPS
+   *  VICTORY SEQUENCE
    * ═══════════════════════════════════════════════════════════════ */
-  _showPopup(x, y, text, color) {
-    const popup = this.add.text(x, y, text, {
-      fontFamily: "Arial",
-      fontSize: "24px",
-      color,
-      fontStyle: "bold",
-      stroke: "#0a0a1a",
-      strokeThickness: 2,
-    }).setOrigin(0.5).setDepth(150);
-
-    this.tweens.add({
-      targets: popup,
-      y: y - 60,
-      alpha: 0,
-      scaleX: 1.3,
-      scaleY: 1.3,
-      duration: 800,
-      ease: "Cubic.out",
-      onComplete: () => popup.destroy(),
-    });
-  }
-
-  _showTooltip(text, color) {
-    if (!this.tooltip || !this.tooltip.active) return;
-    this.tooltip.setText(text);
-    this.tooltip.setColor(color || "#ffffff");
-    this.tooltip.setAlpha(1);
-    this.tweens.killTweensOf(this.tooltip);
-    this.tweens.add({
-      targets: this.tooltip,
-      alpha: 0,
-      delay: 2500,
-      duration: 500,
-    });
-  }
-
-  /* ═══════════════════════════════════════════════════════════════
-   *  LEVEL END
-   * ═══════════════════════════════════════════════════════════════ */
-  _checkLevelEnd() {
-    const accuracy = this.totalAnswered > 0
-      ? Math.round((this.correctAnswers / this.totalAnswered) * 100)
-      : 100;
-    this._levelComplete(accuracy);
-  }
-
-  _levelComplete(accuracy) {
+  _victorySequence() {
     this.isComplete = true;
-    this._clearProblemElements();
-    if (this.timerEvent) this.timerEvent.destroy();
-    if (this.timerBarTween) this.timerBarTween.destroy();
 
-    const passed = accuracy >= ACCURACY_THRESHOLD;
-    const elapsed = Math.round((this.time.now - this.startTime) / 1000);
-    const mins = Math.floor(elapsed / 60);
-    const secs = elapsed % 60;
-    const timeStr = `${mins}:${secs.toString().padStart(2, "0")}`;
+    // Core transforms: red → green/cyan
+    this.tweens.killTweensOf(this.coreInner);
+    this.tweens.killTweensOf(this.coreOuter);
 
-    if (passed) {
-      GameManager.completeLevel(5, accuracy);
-      BadgeSystem.unlock("calculation_wizard");
-      ProgressTracker.saveProgress(GameManager.getState());
-      this.cameras.main.flash(600, 100, 255, 100);
-
-      for (let i = 0; i < 10; i++) {
-        this.time.delayedCall(i * 200, () => {
-          this.confettiParticles.emitParticleAt(
-            Phaser.Math.Between(100, W - 100),
-            Phaser.Math.Between(0, 50),
-            15
-          );
-        });
+    this.tweens.add({
+      targets: this.coreInner,
+      fillColor: 0x4ade80,
+      duration: 800,
+      onUpdate: (tween) => {
+        const t = tween.progress;
+        const r = Math.round(255 * (1 - t));
+        const g = Math.round(74 + (222 - 74) * t);
+        const b = Math.round(0 + (128) * t);
+        this.coreInner.setFillStyle((r << 16) | (g << 8) | b, 0.7);
       }
+    });
+
+    this.coreOuter.setStrokeStyle(3, 0x4ade80, 0.8);
+    this.coreOuter.setFillStyle(0x0a2a1a, 0.6);
+    this.coreLabel.setColor("#4ade80");
+    this.coreStatusTxt.setText("STATUS: ONLINE").setColor("#4ade80");
+
+    // Core pulse (healthy)
+    this.tweens.add({
+      targets: this.coreInner, alpha: 0.4, yoyo: true, repeat: -1, duration: 1000,
+    });
+    this.tweens.add({
+      targets: this.coreOuter, scaleX: 1.08, scaleY: 1.08, yoyo: true, repeat: -1, duration: 1400,
+    });
+
+    // Massive particle explosion
+    for (let i = 0; i < 10; i++) {
+      this.time.delayedCall(i * 120, () => {
+        const angle = (i / 10) * Math.PI * 2;
+        const px = W / 2 + Math.cos(angle) * 40;
+        const py = H / 2 + Math.sin(angle) * 40;
+        this.victoryParticles.emitParticleAt(px, py, 20);
+      });
     }
 
-    this.time.delayedCall(passed ? 500 : 200, () => {
-      this._showEndScreen(passed, accuracy, timeStr);
+    this.cameras.main.flash(600, 74, 222, 128);
+    this.cameras.main.shake(500, 0.015);
+
+    // Draw connection lines from all terminals to core
+    this.terminals.forEach(t => {
+      const lg = this.add.graphics().setDepth(7);
+      lg.lineStyle(2, t.def.solvedColor, 0.4);
+      lg.beginPath();
+      lg.moveTo(t.def.x, t.def.y);
+      lg.lineTo(W / 2, H / 2);
+      lg.strokePath();
     });
+
+    // Save progress
+    GameManager.completeLevel(5, 100);
+    BadgeSystem.unlock("calculation_wizard");
+    ProgressTracker.saveProgress(GameManager.getState());
+    GameManager.addXP(500);
+
+    this.time.delayedCall(1500, () => this._showVictoryScreen());
   }
 
-  _showEndScreen(passed, accuracy, timeStr) {
-    const overlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.88).setDepth(200);
+  _showVictoryScreen() {
+    const ov = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.82).setDepth(200);
 
-    const panelG = this.add.graphics().setDepth(201);
-    const panelColor = passed ? 0x0a2015 : 0x4a1e1e;
-    const borderColor = passed ? 0x4ade80 : 0xe74c3c;
-    panelG.fillStyle(panelColor, 0.95);
-    panelG.fillRoundedRect(W / 2 - 280, 70, 560, 450, 16);
-    panelG.lineStyle(3, borderColor);
-    panelG.strokeRoundedRect(W / 2 - 280, 70, 560, 450, 16);
+    const pg = this.add.graphics().setDepth(201);
+    pg.fillStyle(0x0a0f1a, 0.96);
+    pg.fillRoundedRect(100, 80, 600, 420, 16);
+    pg.lineStyle(3, 0x4ade80);
+    pg.strokeRoundedRect(100, 80, 600, 420, 16);
 
-    const titleText = passed ? "🎉 MISSION COMPLETE!" : "❌ MISSION FAILED";
-    const titleColor = passed ? "#4ade80" : "#e74c3c";
+    const title = this.add.text(400, 120, "SYSTEM RESTORED!", {
+      fontFamily: "Arial Black", fontSize: "32px", color: "#4ade80", fontStyle: "bold",
+    }).setOrigin(0.5).setDepth(202).setAlpha(0).setScale(0.5);
 
-    this.add.text(W / 2, 110, titleText, {
-      fontFamily: "Arial Black, Arial, sans-serif",
-      fontSize: "30px",
-      color: titleColor,
-      fontStyle: "bold",
+    this.tweens.add({ targets: title, alpha: 1, scale: 1, duration: 600, ease: "Back.out" });
+
+    this.add.text(400, 165, "All terminals calibrated. Core is online.", {
+      fontFamily: "Arial", fontSize: "15px", color: "#cbd5e1",
     }).setOrigin(0.5).setDepth(202);
 
-    if (passed) {
-      this.add.text(W / 2, 145, "Float Module Complete!", {
-        fontFamily: "Arial",
-        fontSize: "16px",
-        color: "#86efac",
-        fontStyle: "italic",
-      }).setOrigin(0.5).setDepth(202);
-    }
+    // Badge box
+    const badgeG = this.add.graphics().setDepth(202);
+    badgeG.fillStyle(0x0f172a, 0.95);
+    badgeG.fillRoundedRect(230, 200, 340, 70, 12);
+    badgeG.lineStyle(2, 0x4ade80);
+    badgeG.strokeRoundedRect(230, 200, 340, 70, 12);
 
-    const statsY = 175;
-    const stats = [
-      `Correct: ${this.correctAnswers} / ${this.totalAnswered}`,
-      `Accuracy: ${accuracy}%`,
-      `Score: ${this.score}`,
-      `Time: ${timeStr}`,
-      `Lives Remaining: ${this.lives}`,
-    ];
-
-    stats.forEach((s, i) => {
-      this.add.text(W / 2, statsY + i * 28, s, {
-        fontFamily: "Arial",
-        fontSize: "17px",
-        color: "#ecf0f1",
-      }).setOrigin(0.5).setDepth(202);
-    });
-
-    if (passed) {
-      this.add.text(W / 2, statsY + stats.length * 28 + 15, "🧮 Badge Unlocked: Calculation Wizard!", {
-        fontFamily: "Arial",
-        fontSize: "16px",
-        color: "#f1c40f",
-        fontStyle: "bold",
-      }).setOrigin(0.5).setDepth(202);
-
-      this.add.text(W / 2, statsY + stats.length * 28 + 48,
-        "✅ You mastered float operations!\nAddition, multiplication, precision & real-world usage.", {
-        fontFamily: "Arial",
-        fontSize: "13px",
-        color: "#bdc3c7",
-        align: "center",
-        lineSpacing: 5,
-      }).setOrigin(0.5).setDepth(202);
-    }
-
-    const btnY = 450;
-    if (passed) {
-      this._createEndButton(W / 2 - 130, btnY, "MAIN MENU", 0x166534, () => {
-        this.scene.stop("UIScene");
-        this.scene.start("MenuScene");
-      });
-      this._createEndButton(W / 2 + 130, btnY, "REPLAY", 0x4ade80, () => {
-        GameManager.resetLevel();
-        this.scene.restart();
-      });
-    } else {
-      this._createEndButton(W / 2 - 100, btnY, "TRY AGAIN", 0xe74c3c, () => {
-        GameManager.resetLevel();
-        this.scene.restart();
-      });
-      this._createEndButton(W / 2 + 100, btnY, "MENU", 0x34495e, () => {
-        this.scene.stop("UIScene");
-        this.scene.start("MenuScene");
-      });
-    }
-  }
-
-  _createEndButton(x, y, text, color, callback) {
-    const bg = this.add.rectangle(x, y, 200, 44, color, 1).setDepth(202);
-    bg.setStrokeStyle(2, Phaser.Display.Color.IntegerToColor(color).brighten(30).color);
-    const txt = this.add.text(x, y, text, {
-      fontFamily: "Arial",
-      fontSize: "16px",
-      color: "#ffffff",
-      fontStyle: "bold",
+    this.add.text(400, 222, "FLOAT MASTER", {
+      fontFamily: "Arial Black", fontSize: "20px", color: "#4ade80",
+    }).setOrigin(0.5).setDepth(203);
+    this.add.text(400, 248, "Badge Unlocked: Calculation Wizard!", {
+      fontFamily: "Arial", fontSize: "12px", color: "#86efac",
     }).setOrigin(0.5).setDepth(203);
 
-    bg.setInteractive({ useHandCursor: true });
-    bg.on("pointerover", () => {
-      this.tweens.add({ targets: [bg, txt], scaleX: 1.08, scaleY: 1.08, duration: 100 });
+    // Stats
+    const stats = [
+      `Terminals Restored: ${this.terminalsSolved} / 3`,
+      `Score: ${this.score}`,
+    ];
+    stats.forEach((s, i) => {
+      this.add.text(400, 295 + i * 26, s, {
+        fontFamily: "monospace", fontSize: "15px", color: "#ecf0f1",
+      }).setOrigin(0.5).setDepth(202);
     });
-    bg.on("pointerout", () => {
-      this.tweens.add({ targets: [bg, txt], scaleX: 1, scaleY: 1, duration: 100 });
+
+    this.add.text(400, 365, "You applied float addition, subtraction, and\nconstraint logic to restore a cyber system!", {
+      fontFamily: "Arial", fontSize: "13px", color: "#94a3b8",
+      align: "center", lineSpacing: 5,
+    }).setOrigin(0.5).setDepth(202);
+
+    // Buttons
+    const finishBtn = this.add.rectangle(300, 440, 220, 44, 0x166534).setDepth(210);
+    finishBtn.setStrokeStyle(2, 0x4ade80);
+    this.add.text(300, 440, "Finish Module", {
+      fontFamily: "Arial", fontSize: "15px", color: "#4ade80", fontStyle: "bold",
+    }).setOrigin(0.5).setDepth(211);
+    finishBtn.setInteractive({ useHandCursor: true });
+    finishBtn.on("pointerover", () => finishBtn.setFillStyle(0x4ade80));
+    finishBtn.on("pointerout", () => finishBtn.setFillStyle(0x166534));
+    finishBtn.on("pointerup", () => {
+      this.scene.stop("UIScene");
+      this.scene.start("MenuScene");
     });
-    bg.on("pointerup", callback);
-  }
 
-  _gameOver() {
-    this.isComplete = true;
-    this._clearProblemElements();
-    if (this.timerEvent) this.timerEvent.destroy();
-    if (this.timerBarTween) this.timerBarTween.destroy();
-
-    this.cameras.main.shake(500, 0.02);
-    this.cameras.main.flash(300, 255, 0, 0);
-
-    this.time.delayedCall(600, () => {
-      const overlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.88).setDepth(200);
-
-      this.add.text(W / 2, H / 2 - 80, "💀 MISSION ABORTED", {
-        fontFamily: "Arial Black, Arial, sans-serif",
-        fontSize: "32px",
-        color: "#e74c3c",
-        fontStyle: "bold",
-      }).setOrigin(0.5).setDepth(201);
-
-      this.add.text(W / 2, H / 2 - 20, `You solved ${this.currentProblem} / ${TOTAL_PROBLEMS} problems`, {
-        fontFamily: "Arial",
-        fontSize: "20px",
-        color: "#ecf0f1",
-      }).setOrigin(0.5).setDepth(201);
-
-      this.add.text(W / 2, H / 2 + 15, "You ran out of lives!", {
-        fontFamily: "Arial",
-        fontSize: "16px",
-        color: "#e74c3c",
-      }).setOrigin(0.5).setDepth(201);
-
-      this._createEndButton(W / 2 - 100, H / 2 + 80, "TRY AGAIN", 0xe74c3c, () => {
-        GameManager.resetLevel();
-        this.scene.restart();
-      });
-      this._createEndButton(W / 2 + 100, H / 2 + 80, "MENU", 0x34495e, () => {
-        this.scene.stop("UIScene");
-        this.scene.start("MenuScene");
-      });
+    const replayBtn = this.add.rectangle(500, 440, 140, 44, 0x1e293b).setDepth(210);
+    replayBtn.setStrokeStyle(2, 0x3b82f6);
+    this.add.text(500, 440, "Replay", {
+      fontFamily: "Arial", fontSize: "15px", color: "#3b82f6", fontStyle: "bold",
+    }).setOrigin(0.5).setDepth(211);
+    replayBtn.setInteractive({ useHandCursor: true });
+    replayBtn.on("pointerover", () => replayBtn.setFillStyle(0x3b82f6));
+    replayBtn.on("pointerout", () => replayBtn.setFillStyle(0x1e293b));
+    replayBtn.on("pointerup", () => {
+      GameManager.resetLevel();
+      this.scene.restart();
     });
   }
 
+  /* ═══════════════════════════════════════════════════════════════
+   *  UPDATE LOOP
+   * ═══════════════════════════════════════════════════════════════ */
   update() {
-    // Challenge-driven scene — no continuous update needed
-  }
+    if (!this.gameStarted || this.isComplete) return;
 
-  shutdown() {
-    if (this.timerEvent) this.timerEvent.destroy();
-    if (this.timerBarTween) this.timerBarTween.destroy();
-    this._clearProblemElements();
+    /* ── Player movement (blocked when panel open) ── */
+    if (this.panelOpen) {
+      this.player.setVelocity(0, 0);
+    } else {
+      let vx = 0, vy = 0;
+
+      const left = this.cursors.left.isDown || this.wasd.left.isDown;
+      const right = this.cursors.right.isDown || this.wasd.right.isDown;
+      const up = this.cursors.up.isDown || this.wasd.up.isDown;
+      const down = this.cursors.down.isDown || this.wasd.down.isDown;
+
+      if (left) vx = -PLAYER_SPEED;
+      else if (right) vx = PLAYER_SPEED;
+      if (up) vy = -PLAYER_SPEED;
+      else if (down) vy = PLAYER_SPEED;
+
+      if (vx !== 0 && vy !== 0) { vx *= 0.707; vy *= 0.707; }
+      this.player.setVelocity(vx, vy);
+    }
+
+    /* ── Player glow follows ── */
+    if (this.playerGlow?.active) {
+      this.playerGlow.setPosition(this.player.x, this.player.y);
+    }
+
+    /* ── Hint text updates ── */
+    if (this.hintTxt?.active && !this.panelOpen) {
+      let nearTerminal = false;
+      this.terminals.forEach(t => {
+        if (!t.solved) {
+          const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, t.def.x, t.def.y);
+          if (dist < 80) nearTerminal = true;
+        }
+      });
+      this.hintTxt.setText(nearTerminal ? "Walk into the terminal to interact!" : "Walk to a terminal to interact");
+      this.hintTxt.setColor(nearTerminal ? "#4ade80" : "#475569");
+    }
   }
 }
