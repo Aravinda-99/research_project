@@ -58,6 +58,30 @@ export const BADGES = {
     level: 6,
     color: 0x4ade80,
   },
+  char_explorer: {
+    id: "char_explorer",
+    name: "Char Explorer",
+    emoji: "🌌",
+    description: "Completed Level 7 — Char Accretion Phase",
+    level: 7,
+    color: 0xc084fc,
+  },
+  ascii_master: {
+    id: "ascii_master",
+    name: "ASCII Master",
+    emoji: "🔤",
+    description: "Completed Level 8 — Char Tuning Phase",
+    level: 8,
+    color: 0xf472b6,
+  },
+  char_wizard: {
+    id: "char_wizard",
+    name: "Char Wizard",
+    emoji: "🧙",
+    description: "Completed Level 9 — Char Restructuring Phase",
+    level: 9,
+    color: 0x818cf8,
+  },
 };
 
 // In-memory cache of unlocked badges
