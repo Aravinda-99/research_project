@@ -1,7 +1,7 @@
 /**
  * MenuScene — Level Selection Menu
  * ==================================
- * Animated starfield background with 6 level cards in 2 modules.
+ * Animated starfield background with 9 level cards in 3 modules.
  * Locked/unlocked state based on GameManager progress.
  */
 
@@ -23,10 +23,9 @@ export class MenuScene extends Phaser.Scene {
     try {
       const saved = await ProgressTracker.loadProgress();
       if (saved && saved.levelsCompleted) {
-        // Pad arrays for backward compatibility (3 → 6 levels)
-        while (saved.levelsCompleted.length < 6) saved.levelsCompleted.push(false);
-        while ((saved.levelAccuracy || []).length < 6) (saved.levelAccuracy = saved.levelAccuracy || []).push(0);
-        while ((saved.levelAttempts || []).length < 6) (saved.levelAttempts = saved.levelAttempts || []).push(0);
+        while (saved.levelsCompleted.length < 9) saved.levelsCompleted.push(false);
+        while ((saved.levelAccuracy || []).length < 9) (saved.levelAccuracy = saved.levelAccuracy || []).push(0);
+        while ((saved.levelAttempts || []).length < 9) (saved.levelAttempts = saved.levelAttempts || []).push(0);
 
         GameManager.set("levelsCompleted", saved.levelsCompleted);
         GameManager.set("xp", saved.xp || 0);
@@ -64,14 +63,13 @@ export class MenuScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // ── INTEGER MODULE HEADER ──
-    this.add.text(400, 78, "── INTEGER MODULE ──", {
+    this.add.text(400, 74, "── INTEGER MODULE ──", {
       fontFamily: "monospace",
-      fontSize: "11px",
+      fontSize: "10px",
       color: "#38bdf8",
       fontStyle: "bold",
     }).setOrigin(0.5);
 
-    // ── Level Cards — Integer Module ──
     const intLevels = [
       {
         title: "Level 1: Integer Discovery",
@@ -100,7 +98,7 @@ export class MenuScene extends Phaser.Scene {
     ];
 
     intLevels.forEach((lvl, i) => {
-      const y = 116 + i * 68;
+      const y = 104 + i * 52;
       const unlocked = GameManager.isLevelUnlocked(lvl.index);
       const completed = GameManager.get("levelsCompleted")[lvl.index];
       const badgeUnlocked = BadgeSystem.isUnlocked(lvl.badge.id);
@@ -108,14 +106,13 @@ export class MenuScene extends Phaser.Scene {
     });
 
     // ── FLOAT MODULE HEADER ──
-    this.add.text(400, 324, "── FLOAT MODULE ──", {
+    this.add.text(400, 242, "── FLOAT MODULE ──", {
       fontFamily: "monospace",
-      fontSize: "11px",
+      fontSize: "10px",
       color: "#4ade80",
       fontStyle: "bold",
     }).setOrigin(0.5);
 
-    // ── Level Cards — Float Module ──
     const floatLevels = [
       {
         title: "Level 4: Decimal Ocean Dive",
@@ -144,34 +141,77 @@ export class MenuScene extends Phaser.Scene {
     ];
 
     floatLevels.forEach((lvl, i) => {
-      const y = 362 + i * 68;
+      const y = 272 + i * 52;
       const unlocked = GameManager.isLevelUnlocked(lvl.index);
       const completed = GameManager.get("levelsCompleted")[lvl.index];
       const badgeUnlocked = BadgeSystem.isUnlocked(lvl.badge.id);
       this._createLevelCard(lvl, y, unlocked, completed, badgeUnlocked, 0x4ade80);
     });
 
+    // ── CHAR MODULE HEADER ──
+    this.add.text(400, 410, "── CHAR MODULE ──", {
+      fontFamily: "monospace",
+      fontSize: "10px",
+      color: "#c084fc",
+      fontStyle: "bold",
+    }).setOrigin(0.5);
+
+    const charLevels = [
+      {
+        title: "Level 7: Alphabet Nebula Explorer",
+        phase: "ACCRETION",
+        desc: "Fly through space — collect valid char particles!",
+        badge: BADGES.char_explorer,
+        scene: "Level7Scene",
+        index: 6,
+      },
+      {
+        title: "Level 8: ASCII Code Breaker",
+        phase: "TUNING",
+        desc: "Master ASCII values, conversion & char comparison!",
+        badge: BADGES.ascii_master,
+        scene: "Level8Scene",
+        index: 7,
+      },
+      {
+        title: "Level 9: Char Manipulation Lab",
+        phase: "RESTRUCTURING",
+        desc: "Escape sequences, case conversion & string building!",
+        badge: BADGES.char_wizard,
+        scene: "Level9Scene",
+        index: 8,
+      },
+    ];
+
+    charLevels.forEach((lvl, i) => {
+      const y = 440 + i * 52;
+      const unlocked = GameManager.isLevelUnlocked(lvl.index);
+      const completed = GameManager.get("levelsCompleted")[lvl.index];
+      const badgeUnlocked = BadgeSystem.isUnlocked(lvl.badge.id);
+      this._createLevelCard(lvl, y, unlocked, completed, badgeUnlocked, 0xc084fc);
+    });
+
     // ── XP display ──
     const xp = GameManager.get("xp");
-    this.add.text(400, 562, `Total XP: ${xp}`, {
+    this.add.text(400, 570, `Total XP: ${xp}`, {
       fontFamily: "monospace",
-      fontSize: "14px",
+      fontSize: "13px",
       color: "#fbbf24",
     }).setOrigin(0.5);
 
     // ── Completion badge ──
     const allDone = GameManager.get("levelsCompleted").every(Boolean);
     if (allDone) {
-      this.add.text(400, 540, "🏅 ALL MODULES COMPLETE!", {
+      this.add.text(400, 555, "🏅 ALL MODULES COMPLETE!", {
         fontFamily: "Arial",
-        fontSize: "13px",
+        fontSize: "12px",
         color: "#fbbf24",
         fontStyle: "bold",
       }).setOrigin(0.5);
     }
 
     // ── Reset button ──
-    const resetBtn = this.add.text(760, 585, "Reset", {
+    const resetBtn = this.add.text(760, 590, "Reset", {
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "11px",
       color: "#475569",
@@ -201,7 +241,7 @@ export class MenuScene extends Phaser.Scene {
     const cardColor = unlocked ? 0x1e293b : 0x111827;
     const borderColor = completed ? 0x4ade80 : (unlocked ? 0x334155 : 0x1f2937);
 
-    const card = this.add.rectangle(400, y, 680, 58, cardColor, 0.95);
+    const card = this.add.rectangle(400, y, 680, 44, cardColor, 0.95);
     card.setStrokeStyle(2, borderColor);
 
     // Status indicator
@@ -218,18 +258,16 @@ export class MenuScene extends Phaser.Scene {
 
     // Title
     const titleColor = unlocked ? "#e2e8f0" : "#475569";
-    this.add.text(100, y - 16, lvl.title, {
+    this.add.text(100, y - 12, lvl.title, {
       fontFamily: "Inter, Arial, sans-serif",
-      fontSize: "14px",
+      fontSize: "12px",
       color: titleColor,
       fontStyle: "bold",
     });
 
-    // Phase + description on same line
-    const phaseColor = completed ? "#4ade80" : "#64748b";
     this.add.text(100, y + 4, `${lvl.phase}  ·  ${lvl.desc}`, {
       fontFamily: "Inter, Arial, sans-serif",
-      fontSize: "11px",
+      fontSize: "10px",
       color: "#94a3b8",
     });
 

@@ -13,9 +13,9 @@
  */
 
 import Phaser from "phaser";
-import { GameManager } from "../GameManager.js";
-import { BadgeSystem } from "../BadgeSystem.js";
-import { ProgressTracker } from "../ProgressTracker.js";
+import { GameManager } from "../../GameManager.js";
+import { BadgeSystem } from "../../BadgeSystem.js";
+import { ProgressTracker } from "../../ProgressTracker.js";
 
 const W = 800;
 const H = 600;
