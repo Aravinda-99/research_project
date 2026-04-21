@@ -1173,7 +1173,8 @@ export class Level10Scene extends Phaser.Scene {
       vy *= 0.707;
     }
 
-    this.player.setVelocity(vx, vy);
+    /* Container player: velocity lives on the Arcade body, not the GameObject */
+    this.player.body.setVelocity(vx, vy);
 
     /* Oxygen decay */
     this.oxygen = Math.max(0, this.oxygen - OXYGEN_DECAY_PER_SEC * dt);
