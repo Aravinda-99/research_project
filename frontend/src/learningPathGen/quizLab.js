@@ -108,7 +108,7 @@ export function setupQuizUI(root = document) {
                           percent >= 60 ? "Good progress. Review a few topics and try again." :
                           "Keep going. Repetition builds confidence."}
                     </p>
-                    <button id="retry-quiz-btn" class="btn btn-primary" style="margin-top: 1rem;">Retry 20 Questions</button>
+                    <button id="retry-quiz-btn" class="btn btn-primary" style="margin-top: 1rem;">Retry 25 Questions</button>
                 </article>
             `;
 
@@ -149,7 +149,6 @@ export function setupQuizUI(root = document) {
  * Open a fullscreen overlay that shows an isolated quiz view.
  */
 export function openQuizOverlay() {
-    // Create overlay container
     const overlay = document.createElement("div");
     overlay.className = "lp-quiz-overlay";
     overlay.style.position = "fixed";
@@ -165,7 +164,7 @@ export function openQuizOverlay() {
             <div style="padding: 1rem 1.2rem;">
                 <div class="lp-quiz-progress-wrap">
                     <div class="lp-quiz-progress-head" style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <span class="quiz-counter">Question 1 of 20</span>
+                        <span class="quiz-counter">Question 1 of 25</span>
                         <span class="quiz-score-mini">Score: 0</span>
                     </div>
                     <div class="lp-progress-track">
@@ -189,6 +188,5 @@ export function openQuizOverlay() {
     const close = overlay.querySelector(".lp-quiz-overlay-close");
     close.addEventListener("click", () => overlay.remove());
 
-    // Initialize quiz UI inside the overlay
     setupQuizUI(inner);
 }
