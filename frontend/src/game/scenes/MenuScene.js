@@ -74,7 +74,7 @@ export class MenuScene extends Phaser.Scene {
 
     if (shouldShowInteger) {
       // ── INTEGER MODULE HEADER ──
-      this.add.text(400, 54, "── INTEGER MODULE ──", {
+      this.add.text(400, 80, "── INTEGER MODULE ──", {
         fontFamily: "monospace",
         fontSize: "10px",
         color: "#38bdf8",
@@ -109,7 +109,7 @@ export class MenuScene extends Phaser.Scene {
       ];
 
       intLevels.forEach((lvl, i) => {
-        const y = 66 + i * 50;
+        const y = 100 + i * 60;
         const unlocked = GameManager.isLevelUnlocked(lvl.index);
         const completed = GameManager.get("levelsCompleted")[lvl.index];
         const badgeUnlocked = BadgeSystem.isUnlocked(lvl.badge.id);
@@ -119,7 +119,7 @@ export class MenuScene extends Phaser.Scene {
 
     if (shouldShowFloat) {
       // ── FLOAT MODULE HEADER ──
-      const floatHeaderY = shouldShowInteger ? 160 : 54;
+      const floatHeaderY = shouldShowInteger ? 200 : 80;
       this.add.text(400, floatHeaderY, "── FLOAT MODULE ──", {
         fontFamily: "monospace",
         fontSize: "10px",
@@ -155,7 +155,7 @@ export class MenuScene extends Phaser.Scene {
       ];
 
       floatLevels.forEach((lvl, i) => {
-        const floatBaseY = shouldShowInteger ? 176 : 66;
+        const floatBaseY = shouldShowInteger ? 220 : 100;
         const y = floatBaseY + i * 50;
         const unlocked = GameManager.isLevelUnlocked(lvl.index);
         const completed = GameManager.get("levelsCompleted")[lvl.index];
@@ -166,10 +166,10 @@ export class MenuScene extends Phaser.Scene {
 
     if (shouldShowChar) {
       // ── CHAR MODULE HEADER ──
-      let charHeaderY = 268;
-      if (!shouldShowInteger && !shouldShowFloat) charHeaderY = 54;
-      else if (!shouldShowInteger) charHeaderY = 160;
-      else if (!shouldShowFloat) charHeaderY = 160;
+      let charHeaderY = 320;
+      if (!shouldShowInteger && !shouldShowFloat) charHeaderY = 80;
+      else if (!shouldShowInteger) charHeaderY = 200;
+      else if (!shouldShowFloat) charHeaderY = 200;
 
       this.add.text(400, charHeaderY, "── CHAR MODULE ──", {
         fontFamily: "monospace",
@@ -206,10 +206,10 @@ export class MenuScene extends Phaser.Scene {
       ];
 
       charLevels.forEach((lvl, i) => {
-        let charBaseY = 284;
-        if (!shouldShowInteger && !shouldShowFloat) charBaseY = 66;
-        else if (!shouldShowInteger) charBaseY = 176;
-        else if (!shouldShowFloat) charBaseY = 176;
+        let charBaseY = 340;
+        if (!shouldShowInteger && !shouldShowFloat) charBaseY = 100;
+        else if (!shouldShowInteger) charBaseY = 220;
+        else if (!shouldShowFloat) charBaseY = 220;
 
         const y = charBaseY + i * 50;
         const unlocked = GameManager.isLevelUnlocked(lvl.index);
@@ -221,9 +221,9 @@ export class MenuScene extends Phaser.Scene {
 
     if (shouldShowString) {
       // ── STRING MODULE HEADER ──
-      let stringHeaderY = 378;
+      let stringHeaderY = 440;
       let modulesBeforeString = (shouldShowInteger ? 1 : 0) + (shouldShowFloat ? 1 : 0) + (shouldShowChar ? 1 : 0);
-      stringHeaderY = 54 + modulesBeforeString * 106;
+      stringHeaderY = 80 + modulesBeforeString * 120;
 
       this.add.text(400, stringHeaderY, "── STRING MODULE ──", {
         fontFamily: "monospace",
@@ -271,9 +271,9 @@ export class MenuScene extends Phaser.Scene {
 
     if (shouldShowOperators) {
       // ── OPERATORS MODULE HEADER ──
-      let opsHeaderY = 488;
+      let opsHeaderY = 560;
       let modulesBeforeOps = (shouldShowInteger ? 1 : 0) + (shouldShowFloat ? 1 : 0) + (shouldShowChar ? 1 : 0) + (shouldShowString ? 1 : 0);
-      opsHeaderY = 54 + modulesBeforeOps * 106;
+      opsHeaderY = 80 + modulesBeforeOps * 120;
 
       this.add.text(400, opsHeaderY, "── OPERATORS MODULE ──", {
         fontFamily: "monospace",
@@ -365,10 +365,10 @@ export class MenuScene extends Phaser.Scene {
         this.cameras.main.setScroll(0, 0);
       } else {
         // Original scroll behavior when viewing all modules
-        if (focus === "float") this.cameras.main.setScroll(0, 90);
-        else if (focus === "char") this.cameras.main.setScroll(0, 175);
-        else if (focus === "string") this.cameras.main.setScroll(0, 265);
-        else if (focus === "operators") this.cameras.main.setScroll(0, 370);
+        if (focus === "float") this.cameras.main.setScroll(0, 140);
+        else if (focus === "char") this.cameras.main.setScroll(0, 260);
+        else if (focus === "string") this.cameras.main.setScroll(0, 380);
+        else if (focus === "operators") this.cameras.main.setScroll(0, 500);
       }
     } catch { /* ignore */ }
   }
