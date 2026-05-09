@@ -9,6 +9,7 @@ import { initFirebase } from "./config/firebase.js";
 import { initAuthListener, onAuthChange, logout } from "./utils/auth.js";
 import { renderDashboard } from "./pages/dashboard.js";
 import { renderLearningPath } from "./pages/learning-path.js";
+import { renderQuizLab } from "./pages/quiz-lab.js";
 import { renderGames, disposeGames } from "./pages/games.js";
 import { renderErrorAnalysis } from "./pages/error-analysis.js";
 import { renderMastery } from "./pages/mastery.js";
@@ -21,6 +22,7 @@ initAuthListener();
 const pages = {
     dashboard: renderDashboard,
     "learning-path": renderLearningPath,
+    "quiz-lab": renderQuizLab,
     games: renderGames,
     "error-analysis": renderErrorAnalysis,
     mastery: renderMastery,
@@ -54,6 +56,9 @@ function navigateTo(page) {
         container.innerHTML = `<h2>Page not found</h2>`;
     }
 }
+
+// expose navigateTo globally so page modules can programmatically navigate
+window.navigateTo = navigateTo;
 
 function updateNavForUser(user) {
     const actionsEl = document.getElementById("nav-actions");
