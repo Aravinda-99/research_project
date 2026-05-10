@@ -10,11 +10,15 @@ import { initAuthListener, onAuthChange, logout } from "./utils/auth.js";
 import { renderDashboard } from "./pages/dashboard.js";
 import { renderLearningPath } from "./pages/learning-path.js";
 import { renderQuizLab } from "./pages/quiz-lab.js";
-import { renderGames } from "./pages/games.js";
+import { renderGames, disposeGames } from "./pages/games.js";
 import { renderErrorAnalysis } from "./pages/error-analysis.js";
 import { renderMastery } from "./pages/mastery.js";
+
 import { renderQuizResults } from "./pages/quiz-results.js";
 import { renderQuizSummary } from "./pages/quiz-summary.js";
+
+import { renderDemoFlow } from "./pages/demo-flow.js";
+
 import { renderLogin } from "./pages/login.js";
 import { renderRegister } from "./pages/register.js";
 
@@ -30,6 +34,9 @@ const pages = {
     mastery: renderMastery,
     "quiz-results": renderQuizResults,
     "quiz-summary": renderQuizSummary,
+
+    "demo-flow": renderDemoFlow,
+
 };
 
 const authPages = {
@@ -41,6 +48,12 @@ const authPages = {
 let currentPage = "learning-path";
 
 function navigateTo(page) {
+    // Bug fix: ensure the gamified (Phaser) UI is fully removed when navigating away.
+    // `#phaser-container` lives outside `#page-container`, so it won't unmount automatically.
+    if (currentPage === "games" && page !== "games") {
+        disposeGames();
+    }
+
     currentPage = page;
 
     document.querySelectorAll(".nav-link").forEach((link) => {
